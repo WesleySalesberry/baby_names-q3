@@ -7,6 +7,7 @@
 # Licensed under the Apache License, Version 2.0
 # http://www.apache.org/licenses/LICENSE-2.0
 
+__author__ = "wesley salesberry"
 """
 Define the extract_names() function below and change main()
 to call it.
@@ -34,6 +35,9 @@ Suggested milestones for incremental development:
 import sys
 import re
 import argparse
+import pprint
+
+pp = pprint.pprint
 
 
 def extract_names(filename):
@@ -43,9 +47,43 @@ def extract_names(filename):
     the name-rank strings in alphabetical order.
     ['2006', 'Aaliyah 91', 'Aaron 57', 'Abagail 895', ...]
     """
+
     names = []
-    # +++your code here+++
-    return names
+    year_pattern = re.compile(r'Popularity\sin\s(\d\d\d\d)')
+    name_pattern = re.compile(r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)')
+
+    with open(filename) as file:
+        lines = file.read()
+
+        baby_year = year_pattern.search(lines)
+
+        if not baby_year:
+            print('No year could be found!\n')
+            sys.exit(1)
+
+        year = baby_year.group(1)
+        names.append(year)
+
+        tuple = re.findall(name_pattern, lines)
+        # breakpoint()
+        names_rank = {}
+
+        for element in tuple:
+            if element[1] not in names_rank.keys():
+
+                names_rank[element[1]] = element[0]
+            if element[2] not in names_rank.keys():
+                names_rank[element[2]] = element[0]
+
+        for element in names_rank.items():
+            names.append(element[0] + " " + element[1])
+
+        # sorted_names = sorted(names)
+
+        return sorted(names)
+
+
+extract_names("baby1990.html")
 
 
 def create_parser():
@@ -74,15 +112,18 @@ def main(args):
 
     file_list = ns.files
 
-    # option flag
-    create_summary = ns.summaryfile
+    for element in file_list:
+        # print("Working on file: {}".format(element))
+        names = extract_names(element)
+        create_summary = ns.summaryfile
+        if create_summary:
+            with open(element + '.summary', 'w') as output_file:
+                for name in names:
+                    output_file.write(name + '\n')
 
-    # For each filename, call `extract_names()` with that single file.
-    # Format the resulting list as a vertical list (separated by newline \n).
-    # Use the create_summary flag to decide whether to print the list
-    # or to write the list to a summary file (e.g. `baby1990.html.summary`).
-
-    # +++your code here+++
+        else:
+            for name in names:
+                print(name)
 
 
 if __name__ == '__main__':
